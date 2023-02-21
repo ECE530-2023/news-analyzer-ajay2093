@@ -40,8 +40,16 @@ class TextNLP:
         """
         pass
 
-class FeedIngestor:
+class NewsFeedAPI:
+    def ingest_feed(self, feed_url):
+        # TODO: Retrieve the feed from the given URL,
+        # parse the feed data, and store the results
+        # in a database for later retrieval
+        pass
 
-    def retrieve_news():
+    def retrieve_feed(self, start_date, end_date):
+        # TODO: Retrieve all feed items from the database
+        # that fall within the given date range, and return
+        # them in a structured format
         pass
 
