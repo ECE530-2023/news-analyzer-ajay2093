@@ -6,7 +6,7 @@ class FileUploader:
         """
         Upload a file to the server
         """
-        pass
+        return "File uploaded Successfully"
     
     def retrieve_file(self, file_name: str, file_location: str, user_id: str) -> bytes:
         """
@@ -19,3 +19,29 @@ class FileUploader:
         Delete a file from the server
         """
         pass
+
+class TextNLP:
+    
+    def submit_text(self, text: str):
+        """
+        Submit File to server
+        """
+        pass
+
+    def analysis_type(self, type: str):
+        """
+        Submit type to Server
+        """
+        pass
+
+    def get_results(self, name: str):
+        """
+        Retrieve results
+        """
+        pass
+
+class FeedIngestor:
+
+    def retrieve_news():
+        pass
+
