@@ -1,3 +1,2 @@
 numpy==1.23.3
 pytest==7.2.1
-unittest
