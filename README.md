@@ -82,17 +82,19 @@ Please refer uploaded PPT (Project2.ppt) for user stories and error handling
 
 ### Best database for such module
 
-- For a module that focuses on users, their documents, and searches, a document database like MongoDB may be a better fit than a traditional SQL database.
+For a module that focuses on users, their documents, and searches, a document database would be the better choice over a traditional SQL database. Here's why:
 
-- Document databases are designed to store semi-structured data, which makes them well-suited for storing user documents and search queries. This type of database can handle a variety of document formats, including PDFs, Word documents, images, and audio files.
+* Flexibility: Document databases like MongoDB, CouchDB, or RavenDB are designed to store unstructured data, making them a good fit for document-based use cases. This makes them an ideal choice for a module that involves working with documents that may not have a fixed schema.
 
-- In addition, document databases are flexible and schemaless, which means that they can adapt to changing data models and requirements without requiring a strict schema. This can be particularly useful in a module that involves user-generated content, where the document structure may vary from user to user.
+* Performance: Document databases are designed for high performance and scalability. They use a distributed architecture that allows them to easily scale horizontally by adding more servers. This makes them ideal for applications that need to handle a large volume of data and traffic.
 
-- Document databases are also designed for high performance and scalability, making them ideal for modules that require fast query response times and the ability to handle large volumes of data. For example, if the module needs to search through thousands of user documents quickly, a document database can efficiently handle the indexing and querying needed to retrieve relevant documents.
+* Querying: Document databases offer powerful query capabilities that allow developers to retrieve data based on complex criteria. This makes them an excellent choice for applications that need to perform ad-hoc queries or search operations.
 
-- Finally, document databases often have built-in features that support full-text search, which can be important for a module that involves user search queries. Full-text search allows users to search for specific keywords or phrases within the content of their documents, making it easier to find relevant information.
-Overall, a document database may be a better fit for a module that focuses on users, their documents, and searches because it can handle semi-structured data, is flexible and scalable, and supports full-text search.
+* Integration: Document databases can integrate easily with modern web frameworks and languages like Node.js, Ruby on Rails, or Python, making them an ideal choice for web applications.
 
+* Cost: Document databases are generally less expensive to operate than traditional SQL databases because they require less infrastructure and support to manage. This is particularly true when scaling horizontally, which is much easier and less expensive with a document database.
+
+In summary, for a module that focuses on users, their documents, and searches, a document database would be the better choice because of its flexibility, performance, querying capabilities, integration, and cost-effectiveness.
 
 
 
