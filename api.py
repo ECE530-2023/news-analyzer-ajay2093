@@ -1,60 +1,118 @@
-from typing import Dict, List
+from typing import Dict, List, Any
 import sqlite3
-import feedparser
-
-
+import os
 
 class FileUploader:
-    def __init__(self):
-        # Connect to the SQLite database
-        self.conn = sqlite3.connect('file_data.db')
-        
-        # Create a table to store information about the uploaded files
-        self.conn.execute('''CREATE TABLE IF NOT EXISTS uploaded_files
-                            (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                             file_name TEXT NOT NULL,
-                             file_location TEXT NOT NULL,
-                             access_control TEXT,
-                             file_size INTEGER NOT NULL,
-                             upload_date TEXT NOT NULL)''')
+    def __init__(self, db_path):
+        self.uploaded_files = []
+        self.access_controls = {}
+        self.conn = sqlite3.connect(db_path)
+
+        cursor = self.conn.cursor()
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS uploaded_files (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                filename TEXT NOT NULL
+            )
+        """)
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS access_controls (
+                file_id INTEGER NOT NULL,
+                permission TEXT NOT NULL,
+                PRIMARY KEY (file_id, permission),
+                FOREIGN KEY (file_id) REFERENCES uploaded_files (id)
+            )
+        """)
+
         self.conn.commit()
 
-    def upload_file(self, file_contents: bytes, file_name: str, file_location: str, access_control: Dict[str, List[str]]) -> str:
-        """
-        Upload a file to the server
-        """
-        extension = file_name.split()
-        if extension[-1] == "txt":
-            # Insert the file information into the database
-            cursor = self.conn.cursor()
-            cursor.execute("INSERT INTO uploaded_files (file_name, file_location, access_control, file_size, upload_date) VALUES (?, ?, ?, ?, ?)", (file_name, file_location, str(access_control), len(file_contents), str(datetime.now())))
-            self.conn.commit()
+    def upload_file(self, file):
+        if not file:
+            return {"error": "No file uploaded."}, 400
 
-            return "File uploaded Successfully"
+        cursor = self.conn.cursor()
+        cursor.execute("INSERT INTO uploaded_files (filename) VALUES (?)", (file,))
+        self.conn.commit()
+
+        self.uploaded_files.append({"id": cursor.lastrowid, "filename": file})
+        return {"message": "File uploaded successfully."}, 200
+
+    def retrieve_file(self, filename: str) -> bytes:
+        cursor = self.conn.cursor()
+
+        cursor.execute("""
+            SELECT id, filename FROM uploaded_files WHERE filename=?
+        """, (filename,))
+
+        result = cursor.fetchone()
+
+        if result:
+            file_id, filename = result
+            with open(filename, 'rb') as f:
+                file_contents = f.read()
+            return file_contents
+
         else:
-            return "This file format is not supported"
-    
-    def retrieve_file(self, file_name: str, file_location: str, user_id: str) -> bytes:
-        """
-        Retrieve a file from the server
-        """
-        pass
-    
-    def delete_file(self, file_name: str, file_location: str, user_id: str) -> None:
-        """
-        Delete a file from the server
-        """
-        pass
+            raise ValueError("File not found")
+
+
+    def delete_file(self, file_id):
+        for file in self.uploaded_files:
+            if file["id"] == file_id:
+                cursor = self.conn.cursor()
+                cursor.execute("DELETE FROM uploaded_files WHERE id=?", (file_id,))
+                self.conn.commit()
+
+                self.uploaded_files.remove(file)
+                return {"message": f"File {file_id} deleted successfully."}, 200
+        return {"error": f"File {file_id} not found."}, 404
 
 class TextNLP:
-    
-    def analyze_text(self, text: str, type:str) -> Dict[str, any]:
+    def __init__(self, db_path):
+        self.conn = sqlite3.connect(db_path)
+
+        cursor = self.conn.cursor()
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS text_analysis (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                text TEXT NOT NULL,
+                type TEXT NOT NULL,
+                sentiment REAL,
+                positive REAL,
+                negative REAL,
+                topics TEXT,
+                entities TEXT
+            )
+        """)
+
+        self.conn.commit()
+
+    def analyze_text(self, text: str, type:str) -> Dict[str, Any]:
         if text:
             if type in ["sen","ner"]:
+                # Analyze the text and get the results
+                sentiment = 0.7
+                positive = 0.6
+                negative = 0.4
+                topics = ["politics", "activism", "health"]
+                entities = {"New Delhi": "CITY", "Narendra Modi": "PERSON"}
+
+                # Store the results in the database
+                cursor = self.conn.cursor()
+                cursor.execute("""
+                    INSERT INTO text_analysis (text, type, sentiment, positive, negative, topics, entities)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (text, type, sentiment, positive, negative, str(topics), str(entities)))
+                self.conn.commit()
+
+                # Return the results
                 return {
-                    "sentiment": {"polarity": 0.7, "positive": 0.6, "negative": 0.4},
-                    "topics": ["politics", "activism", "health"],
-                    "entities": {"New Delhi": "CITY", "Narendra Modi": "PERSON"}
+                    "sentiment": {"polarity": sentiment, "positive": positive, "negative": negative},
+                    "topics": topics,
+                    "entities": entities
                 }
         else:
             return "Invalid input"
@@ -63,65 +121,70 @@ class TextNLP:
         """
         Retrieve results
         """
-        return {
-    "language": "en",
-    "sentences": [
-        {
-        "text": {
-            "content": "Enjoy your vacation!",
-            "beginOffset": 0
-        },
-        "sentiment": {
-            "magnitude": 0.8,
-            "score": 0.8
-        }
-        }
-    ]
-    }
+        cursor = self.conn.cursor()
+        cursor.execute("""
+            SELECT text, type, sentiment, positive, negative, topics, entities
+            FROM text_analysis
+            WHERE text = ?
+        """, (name,))
+        result = cursor.fetchone()
+
+        if result:
+            text, type, sentiment, positive, negative, topics, entities = result
+            return {
+                "sentiment": {"polarity": sentiment, "positive": positive, "negative": negative},
+                "topics": eval(topics),
+                "entities": eval(entities)
+            }
+        else:
+            return "Result not found"
+
 
 class NewsFeedAPI:
     
     def __init__(self, db_file):
         self.conn = sqlite3.connect(db_file)
         self.cursor = self.conn.cursor()
-        self.create_articles_table()
    
-
     def create_news_table(self):
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS feed_data
-                     (title TEXT, link TEXT, published TEXT)''')
-        
-    
-    def ingest_feed(self, feed_url):
-        # TODO: Retrieve the feed from the given URL,
-        # parse the feed data, and store the results
-        # in a database for later retrieval
-        if(not feed_url):
-            return "Invalid request"
-        
-        feed = feedparser.parse(feed_url)
+        try:
+            self.cursor.execute('''
+                CREATE TABLE IF NOT EXISTS articles (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    title TEXT NOT NULL,
+                    content TEXT NOT NULL,
+                    source TEXT NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+            ''')
+            self.conn.commit()
+        except Exception as e:
+            print(f"Error creating table: {e}")
 
-        for entry in feed.entries:
-            title = entry.title
-            link = entry.link
-            published = entry.published
-            self.cursor.execute("INSERT INTO feed_data VALUES (?, ?, ?)", (title, link, published))
+    
+    def ingest_article(self, title: str, content: str, source: str) -> str:
+        if(not title or not content or not source):
+            return "Invalid request"
+        else:
+            self.cursor.execute('''
+                INSERT INTO articles (title, content, source)
+                VALUES (?, ?, ?);
+            ''', (title, content, source))
+            self.conn.commit()
+            return "Article ingested successfully."
 
     def retrieve_feed(self, start_date, end_date):
-        # TODO: Retrieve all feed items from the database
-        # that fall within the given date range, and return
-        # them in a structured format
         if not start_date:
             return "Empty Date"
-        
-        cursor = self.conn.execute("SELECT title, link, published FROM feed_data WHERE published BETWEEN ? AND ?", (start_date, end_date))
-        rows = self.cursor.fetchall()
-
-        self.conn.close()
+    
+        cursor = self.conn.execute("SELECT title, content, created_at FROM articles WHERE created_at BETWEEN ? AND ?", (start_date + " 00:00:00", end_date + " 23:59:59"))
+        rows = cursor.fetchall()
 
         results = []
         for row in rows:
-            result = {"title": row[0], "link": row[1], "published": row[2]}
+            result = {"title": row[0], "content": row[1], "created_at": row[2]}
             results.append(result)
 
         return results
+
+
