@@ -2,9 +2,7 @@ import unittest
 import tempfile
 import os
 import sqlite3
-from secure_uploader import FileUploader
-from text_analysis import TextNLP
-from news_feed import NewsFeedAPI
+from api_final import FileUploader, TextNLP, NewsFeedAPI
 
 class TestFileUploader(unittest.TestCase):
     def setUp(self):
