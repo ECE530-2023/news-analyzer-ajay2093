@@ -14,11 +14,6 @@ This class provides authentication functionality using Google Firebase. It has t
 `register_user(email: str)`: This method takes an email address as input, sends a verification email to the provided email address, and registers the user in the Firebase Authentication service.
 
 `authenticate_user() -> str`: This method authenticates the user using Google Firebase Authentication. It prompts the user to enter a valid ID token and verifies it using the Firebase Authentication service. If the token is valid, it returns the email address of the authenticated user.
-Authentication class: This class provides authentication functionality using Google Firebase. It has two methods:
-
-`register_user(email: str)`: This method takes an email address as input, sends a verification email to the provided email address, and registers the user in the Firebase Authentication service.
-
-`authenticate_user()` -> str: This method authenticates the user using Google Firebase Authentication. It prompts the user to enter a valid ID token and verifies it using the Firebase Authentication service. If the token is valid, it returns the email address of the authenticated user.
 
 ## FileUploader class: 
 This class provides functionality for uploading and retrieving files from Google Drive using the Google Drive API. It has four methods:
