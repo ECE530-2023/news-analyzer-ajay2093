@@ -86,8 +86,8 @@ def modules():
                     except ValueError as e:
                         print(e)
                 elif choice == "3":
-                    file_id = int(input("Enter file ID: "))
-                    response, status = uploader.delete_file(file_id)
+                    filename = input("Enter filename: ")
+                    response, status = uploader.delete_file(filename)
                     print(response)
                 elif choice == "4":
                     break
@@ -157,9 +157,10 @@ def main():
             email = input("Enter user email: ")
             authenticator.register_user(email)
             print("User registered successfully!")
-            modules()
+            #break
         elif choice == "2":
             # Authenticate a user
+            authenticator.test()
             email = authenticator.authenticate_user()
             if email:
                 print(f"User {email} authenticated successfully!")
