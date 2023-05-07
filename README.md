@@ -4,6 +4,8 @@ news-analyzer-ajay2093 created by GitHub Classroom
 ## *Added api_queue and test_api_queue for Queue and Thread implementation!
 ## *Added api.cpp for Queue and Thread implementation in C++!
 
+## GO INTO FINAL PROJECT FOLDER TO ASSES MY FINAL PROJECT
+
 
 ### Database Schemas
 
